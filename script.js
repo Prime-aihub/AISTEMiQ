@@ -201,3 +201,54 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   });
 });
+/* =========================
+   THEME TOGGLE: light | dark | neon
+   ========================= */
+
+(function(){
+  const THEME_KEY = 'aistemiq_theme';
+  const defaultTheme = 'dark'; // site default
+  const body = document.body;
+  const buttons = Array.from(document.querySelectorAll('.theme-btn'));
+
+  function applyTheme(theme){
+    // remove existing theme-* classes
+    ['theme-light','theme-dark','theme-neon'].forEach(c => body.classList.remove(c));
+    body.classList.add('theme-' + theme);
+
+    // set active button
+    buttons.forEach(btn => {
+      const t = btn.dataset.theme;
+      if(t === theme){ btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
+      else { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+    });
+
+    // persist
+    try { localStorage.setItem(THEME_KEY, theme); } catch(e){ /* ignore */ }
+  }
+
+  // init from storage
+  const saved = (function(){
+    try { return localStorage.getItem(THEME_KEY); } catch(e){ return null; }
+  })();
+  const initial = saved || defaultTheme;
+  applyTheme(initial);
+
+  // attach listeners
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.dataset.theme;
+      applyTheme(theme);
+    });
+  });
+
+  // Accessibility: allow keyboard on toggle (left/right)
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if(idx < 0) idx = 0;
+  document.addEventListener('keydown', (e) => {
+    if(document.activeElement && document.activeElement.classList.contains('theme-btn')) {
+      if(e.key === 'ArrowRight'){ idx = (idx + 1) % buttons.length; buttons[idx].focus(); buttons[idx].click(); }
+      if(e.key === 'ArrowLeft'){ idx = (idx - 1 + buttons.length) % buttons.length; buttons[idx].focus(); buttons[idx].click(); }
+    }
+  });
+})();
